@@ -135,6 +135,24 @@ class ReflectionParserTest extends TestCase
         $this->assertPropertyType($property2->getType(), PropertyTypeUnknown::class, 'mixed', true);
     }
 
+    public function testTypedPropertiesIntersection(): void
+    {
+        if (version_compare(PHP_VERSION, '8.1.0', '<')) {
+            $this->markTestSkipped('Intersection property types are only supported in PHP 8.1 or newer');
+        }
+
+        $rawClassMetadata = new RawClassMetadata(UnionTypeDeclarationModel::class);
+        $this->parser->parse($rawClassMetadata);
+
+        $props = $rawClassMetadata->getPropertyCollections();
+        $this->assertCount(1, $props, 'Number of class metadata properties should match');
+
+        $this->assertPropertyCollection('property1', 1, $props[0]);
+        $property1 = $props[0]->getVariations()[0];
+        $this->assertProperty('property1', false, false, $property1);
+        $this->assertPropertyType($property1->getType(), PropertyTypeUnknown::class, 'mixed', true);
+    }
+
     public function testPrefilledClassMetadata(): void
     {
         $c = new class() {
